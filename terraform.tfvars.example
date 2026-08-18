@@ -1,0 +1,39 @@
+region       = "us-east-1"
+project_name = "da-eks"
+env_subfix   = "dev"
+
+tags = {
+  Project     = "da-eks"
+  Environment = "dev"
+  ManagedBy   = "terraform"
+}
+
+cluster_name       = "da-eks-dev"
+kubernetes_version = "1.33"
+
+vpc_cidr             = "10.50.0.0/16"
+public_subnet_cidrs  = ["10.50.0.0/24", "10.50.1.0/24"]
+private_subnet_cidrs = ["10.50.10.0/24", "10.50.11.0/24"]
+single_nat_gateway   = true
+
+endpoint_public_access  = true
+endpoint_private_access = true
+public_access_cidrs     = ["0.0.0.0/0"] # tighten to your office/VPN CIDR
+
+fargate_profiles = {
+  kube-system = {
+    selectors = [
+      { namespace = "kube-system", labels = { "k8s-app" = "kube-dns" } }
+    ]
+  }
+  default = {
+    selectors = [
+      { namespace = "default", labels = {} }
+    ]
+  }
+  argocd = {
+    selectors = [
+      { namespace = "argocd", labels = {} }
+    ]
+  }
+}
