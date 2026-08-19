@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: monitoring-stack
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: grafana
+            repoURL: https://grafana.github.io/helm-charts
+            chart: grafana
+          - name: prometheus
+            repoURL: https://prometheus-community.github.io/helm-charts
+            chart: prometheus
+          - name: loki
+            repoURL: https://grafana.github.io/helm-charts
+            chart: loki
+
+  template:
+    metadata:
+      name: "{{name}}"
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      sources:
+        - repoURL: "{{repoURL}}"
+          chart: "{{chart}}"
+          targetRevision: "*"
+          helm:
+            valueFiles:
+              - $values/argocd/values/{{name}}-values-dev.yaml
+        - repoURL: https://github.com/mchapane_cisco/eks-fargate-terraform.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: monitoring
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

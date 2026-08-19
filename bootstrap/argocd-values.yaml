@@ -1,0 +1,4 @@
+# argocd-values.yaml
+server:
+  ingress:
+    enabled: true
